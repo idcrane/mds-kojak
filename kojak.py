@@ -18,20 +18,28 @@ class TrackAnalysis(object):
           'en_audio_summary_duration', 'en_audio_summary_energy', 'en_audio_summary_instrumentalness',
           'en_audio_summary_key', 'en_audio_summary_liveness', 'en_audio_summary_loudness', 'en_audio_summary_mode',
             'en_audio_summary_speechiness', 'en_audio_summary_tempo', 'en_audio_summary_time_signature',
-            'en_audio_summary_valence', 'en_id', 'en_title', 'sp_name', 'sp_uri']
+            'en_audio_summary_valence', 'en_id', 'en_title', 'sp_name', 'sp_uri', 'sp_preview_url', 'en_track_duration']
 
-    studio_album_file = 'studioalbums.py'
+    album_file = 'studioalbums.tsv'
 
     def __init__(self, artistname, mongodb, albuminfo=None):
         """ artistname is a string -- oddly enough, the artist's name.
-            albuminfo is list of dictionaries, each dictionary must at least include "idnum" key.
+            albuminfo is list of dictionaries, each dictionary must at least include "albumid" key
+            and 'artist' key.
             mongodb is pymongo collection object
         """
         self.artistname = artistname
+
+        # Read in list of dictionaries containing the albums we want to look at
         if albuminfo:
             self.albuminfo = albuminfo
         else:
-            self.albuminfo = self._read_album_file(self.studio_album_file, self.artistname)
+            artistalbums = self._read_album_file(self.album_file)
+            # Only look at albums for this band
+            singleartistalbums = [album for album in artistalbums if self.artistname in album['artist']]
+            if len(singleartistalbums) == 0:
+                print "No albums by %s found in %s" % (self.artistname, self.album_file)
+            self.albuminfo = singleartistalbums
         self.mongodb = mongodb
 
     def create_dataframe(self):
@@ -45,12 +53,16 @@ class TrackAnalysis(object):
             tracks += album_tracks
         self.df = pd.DataFrame(tracks)
 
-    def _read_album_file(self, filepath, artistname):
+    def _read_album_file(self, filepath):
         """Read in album file. This assumes a tab seperate file with column
             names 'ALBUMID', 'YEAR', 'BAND', 'ALBUMTITLE'
+
+            This function only reads in the file. To pull only those albums
+            produced by self.artistname, see __init__
         """
         artistalbums = []
-        with open('studioalbums.tsv', 'r') as infile:
+        # Lazy version of csv reader -- it was giving me problems
+        with open(self.album_file, 'r') as infile:
             data = infile.readlines()
             for row in data:
                 row = row.replace('\n', '')
@@ -59,10 +71,7 @@ class TrackAnalysis(object):
                 row = row.split('\t')
                 row = [item for item in row if item]
                 artistalbums.append({'albumid': row[0], 'year': row[1], 'artist': row[2], 'albumtitle': row[3]})
-        singleartistalbums = [album for album in artistalbums if artistname in album['artist']]
-        if len(singleartistalbums) == 0:
-            print "No albums by %s found in %s" % (artistname, filepath)
-        return  singleartistalbums
+        return artistalbums
 
 
 class MusicGrab(object):
