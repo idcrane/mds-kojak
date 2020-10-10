@@ -1,4 +1,4 @@
-###Trends in the Music of Long-Lived Bands
+### Trends in the Music of Long-Lived Bands
 
 *This is a work in progress*
 
@@ -10,6 +10,6 @@ The presentation shows some findings (i.e. the most popular music today of bands
 
 Data is stored in MongoDB, and can be gathered using the MusicGrabKojak class in kojak.py
 
-####To Do:
+#### To Do:
 - Move visualization over to d3
 - Develop web app to grab band information, and allow easier selection of audio data to display
