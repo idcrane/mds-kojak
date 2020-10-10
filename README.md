@@ -1,4 +1,4 @@
-###Trends in the Music of Long-Lived Bands
+### Trends in the Music of Long-Lived Bands
 
 *This is a work in progress*
 
